@@ -1,0 +1,30 @@
+swagger: '2.0'
+info:
+  title: 'Flasgger Parsed Method'
+  description: 'FoxMindEd Task-8'
+  version: '0.1'
+
+summary: Add new student
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: "body"
+    name: "students"
+    required: True
+    schema:
+      type: "object"
+      properties:
+        firstname:
+          type: "string"
+          frormat: "str"
+          example: "Joseph"
+        lastname:
+          type: "string"
+          frormat: "str"
+          example: "Mendelson"
+        group_id:
+          type: "integer"
+          frormat: "int64"
+          example: 5

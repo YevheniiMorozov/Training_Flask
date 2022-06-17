@@ -1,54 +1,58 @@
-import random
-from string import ascii_letters
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-from models import Student, Course, Group
-from .database import engine
-
-from sqlalchemy.orm import sessionmaker
+from .models import Student, Course, Group
 
 
-Session = sessionmaker(engine)
+def get_all_(db: Session, course_id=None):
+    if course_id:
+        return db.query(Student).join(Course.student).order_by(Student.last_name).filter(Course.id == course_id).all()
+    return db.query(Student).order_by(Student.last_name).filter().all()
 
 
-def random_string(length):
-    return "".join(random.choices(population=ascii_letters, k=length))
+def get_courses(db: Session):
+    return db.query(Course).order_by(Course.id).all()
 
 
-result_group = [Group(name=f"{random_string(2).upper()}-{random.randint(10, 100)}") for _ in range(10)]
-
-students_first_name = [
-    "Adam", "Nathan", "Jack", "Alexander",
-    "Jose", "Keith", "Harold", "Carl",
-    "Arthur", "Lawrence", "Billy", "Alan",
-    "Louis", "Grace", "Kathryn", "Gloria",
-    "Judith", "Victoria", "Debra", "Nicole"
-]
-students_last_name = [
-    "Smith", "Johnson", "Brown", "Miller",
-    "Wilson", "Taylor", "Moore", "Martin",
-    "Lee", "Thompson", "Clark", "Lewis",
-    "Allen", "Wright", "Torres", "Hill",
-    "Green", "Baker", "Carter", "Parker"
-]
-
-courses = ["Math", "Biology", "Chemistry", "Physics", "English", "Economy",
-           "You know the rules", "And so do I", "Never gonna", "Give you up"]
-
-result_courses = [Course(name=elements, description=random_string(length=20)) for elements in courses]
-
-result_students = [Student(
-    first_name=random.choice(students_first_name),
-    last_name=random.choice(students_last_name),
-    group_id=random.choice(result_group),
-    course=random.choices(result_courses, k=random.choice(range(1, 4)))
-)]
+def get_groups(db: Session, all=None):
+    group_data = db.query(func.count(Student.group_id), Student.group_id, Group.name
+                          ).group_by(Student.group_id, Group.id).filter(Student.group_id == Group.id)
+    group_data = sorted(group_data, key=lambda x: x[0])
+    min_group = group_data[0][0]
+    if all:
+        return group_data
+    return filter(lambda x: x[0] == min_group, group_data)
 
 
-with engine.connect() as connection:
-    with Session(bind=connection) as session:
-        session.add_all(result_courses)
-        session.commit()
-        session.add_all(result_group)
-        session.commit()
-        session.add_all(result_students)
-        session.commit()
+def get_students_course(db: Session, student_id: int):
+    return db.query(Student).filter(Student.id == student_id).one()
+
+
+def remove_from_course(db: Session, course_id, student_id):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    course = db.query(Course).filter(Course.id == course_id).first()
+    student.course.remove(course)
+    return db.commit()
+
+
+def add_new_student(db: Session, first, last, group):
+    student = Student(first_name=first,
+                      last_name=last,
+                      group_id=int(group))
+    db.add(student)
+
+    return db.commit()
+
+
+def add_student_to_course(db: Session, user_id, course_id):
+    student = db.query(Student).filter(
+        Student.id == user_id).first()
+    course = db.query(Course).filter(Course.id == course_id).first()
+    student.course.append(course)
+    return db.commit()
+
+
+def delete_student(db: Session, student_id: int):
+    db.query(Student).filter(Student.id == student_id).delete()
+    return db.commit()
+

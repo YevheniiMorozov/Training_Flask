@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, sql, ForeignKey, Table
 from sqlalchemy.orm import relationship
 
-from .database import Base
+from .db import Base, engine
 
 
 association_table = Table("association", Base.metadata,
@@ -14,7 +14,7 @@ class Group(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(20), nullable=False)
-    student = relationship("Student")
+    student = relationship("Student", backref="group")
 
     query = sql.Select
 
@@ -28,6 +28,8 @@ class Student(Base):
     group_id = Column(Integer, ForeignKey("group.id"))
     course = relationship("Course", secondary=association_table, back_populates="student")
 
+    query = sql.Select
+
 
 class Course(Base):
     __tablename__ = "course"
@@ -36,3 +38,9 @@ class Course(Base):
     name = Column(String(100), nullable=False)
     description = Column(String(250), nullable=False)
     student = relationship("Student", secondary=association_table, back_populates="course")
+
+    query = sql.Select
+
+
+# Base.metadata.drop_all(engine)
+# Base.metadata.create_all(engine)

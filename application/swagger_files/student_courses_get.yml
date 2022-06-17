@@ -1,0 +1,21 @@
+swagger: '2.0'
+info:
+  title: 'Flasgger Parsed Method'
+  version: '0.1'
+
+parameters:
+  - name: student_id
+    type: integer
+    in: query
+    required: True
+    default: 1
+  - name: format
+    type: string
+    enumerate: [ "json", "xml" ]
+    in: query
+    required: True
+    maxLength: 10
+    default: "xml"
+responses:
+  200:
+    description: OK
