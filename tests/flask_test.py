@@ -13,7 +13,7 @@ def app():
     from application.app import app
 
     app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = POSTGRES_TEST
+    # app.config["SQLALCHEMY_DATABASE_URI"] = POSTGRES_TEST
     engine_test = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
 
     Base.metadata.bind = engine_test
@@ -27,7 +27,8 @@ def app():
         students = [
             Student(first_name="FOO", last_name="BAR", group_id=100),
             Student(first_name="oof", last_name="rab", group_id=100),
-            Student(first_name="foo", last_name="bar", group_id=200)]
+            Student(first_name="foo", last_name="bar", group_id=200),
+            Student(first_name="ofo", last_name="arb", group_id=200)]
         courses = [Course(id=15, name="Bio", description="bio"),
                    Course(id=25, name="Python", description="snake"),
                    Course(id=35, name="C", description="father"),
@@ -85,8 +86,8 @@ def test_smallest_group(client, ctx):
     url = url_for("smallest_group")
     resp = client.get(url)
     data = resp.data.decode("utf-8")
-    assert 'foobar' in data
-    assert "1" in data
+    assert 'FOOBAR' in data
+    assert "2" in data
 
 
 def test_add_new_student(client, ctx):
@@ -141,9 +142,9 @@ def test_api_groups(client, ctx):
     resp = client.get(url)
     data = resp.json
     assert "2" in data
-    assert "FOOBAR" in data["2"]["name"]
+    assert "foobar" in data["2"]["name"]
     assert "1" in data
-    assert "foobar" in data["1"]["name"]
+    assert "FOOBAR" in data["1"]["name"]
 
 
 def test_api_courses(client, ctx):
@@ -164,11 +165,11 @@ def test_api_students(client, ctx):
     resp = client.get(url)
     data = resp.json
     assert "1" in data
-    assert "foo" in data["1"]["first name"]
-    assert "bar" in data["1"]["last name"]
+    assert "ofo" in data["1"]["first name"]
+    assert "arb" in data["1"]["last name"]
     assert "2" in data
-    assert "FOO" in data["2"]["first name"]
-    assert "BAR" in data["2"]["last name"]
+    assert "foo" in data["2"]["first name"]
+    assert "bar" in data["2"]["last name"]
 
     url = url_for("allstudents")
     response = client.post(url, json={
