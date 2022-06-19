@@ -1,7 +1,7 @@
+from application import Base, engine
+
 from sqlalchemy import Column, Integer, String, sql, ForeignKey, Table
 from sqlalchemy.orm import relationship
-
-from .db import Base, engine
 
 
 association_table = Table("association", Base.metadata,
@@ -42,5 +42,6 @@ class Course(Base):
     query = sql.Select
 
 
-# Base.metadata.drop_all(engine)
-# Base.metadata.create_all(engine)
+if __name__ == '__main__':
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)

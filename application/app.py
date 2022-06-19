@@ -1,9 +1,6 @@
 import os
 
-from application import app
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from application import app, SessionLocal, Base, engine
 
 from flask import render_template, url_for, request, jsonify, Response
 from flask_restful import Api, Resource
@@ -12,17 +9,18 @@ from flasgger import Swagger, swag_from
 
 from json2xml import json2xml
 
-from database import crud
-from database.db import Base
+from .database import crud
 
 TO_XML = "xml"
 PATH_TO_YML = "swagger_files"
 
-engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
+app.config['DEBUG'] = True
+
 Base.metadata.bind = engine
 
-DBSession = sessionmaker(engine)
-session = DBSession()
+SessionLocal.configure(bind=engine)
+session = SessionLocal()
+
 
 api = Api(app, catch_all_404s=True, prefix="/api/v1")
 swagger = Swagger(app)

@@ -2,12 +2,7 @@ import random
 from string import ascii_letters
 
 from models import Student, Course, Group
-from db import engine
-
-from sqlalchemy.orm import sessionmaker
-
-
-Session = sessionmaker(engine)
+from application import engine, SessionLocal, Base
 
 
 def random_string(length):
@@ -44,9 +39,11 @@ students = [Student(
     group_id=random.choice(range(1, 11)),
 ) for _ in range(200)]
 
+Base.metadata.drop_all(engine)
+Base.metadata.create_all(engine)
 
 with engine.connect() as connection:
-    with Session(bind=connection) as session:
+    with SessionLocal(bind=connection) as session:
         session.add_all(result_courses)
         session.commit()
         session.add_all(result_group)
