@@ -5,15 +5,15 @@ from flask import url_for
 from sqlalchemy import create_engine
 
 from application.database.models import Student, Course, Group
-from application import POSTGRES_TEST, Base, SessionLocal
+from application import POSTGRES_TEST, Base
 
 
 @pytest.fixture(scope="session")
 def app():
-    from application.app import app
+    from application.app import app, SessionLocal
 
     app.config["TESTING"] = True
-    # app.config["SQLALCHEMY_DATABASE_URI"] = POSTGRES_TEST
+    app.config["SQLALCHEMY_DATABASE_URI"] = POSTGRES_TEST
     engine_test = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
 
     Base.metadata.bind = engine_test
@@ -55,86 +55,6 @@ def client(app):
 def ctx(app):
     with app.test_request_context() as context:
         yield context
-
-
-def test_start_page(client, ctx):
-    url = url_for("index")
-    resp = client.get(url)
-    url1 = url_for('all_students')
-    url2 = url_for('add_new_student')
-    url3 = url_for('show_all_courses')
-    url4 = url_for('smallest_group')
-    data = resp.data.decode("utf-8")
-    assert url1 in data
-    assert url2 in data
-    assert url3 in data
-    assert url4 in data
-    assert resp.status_code == 200
-
-
-def test_all_students(client, ctx):
-    url = url_for('all_students')
-    resp = client.get(url)
-    data = resp.data.decode("utf-8")
-    assert "FOO" in data
-    assert "foo" in data
-    assert "BAR" in data
-    assert "bar" in data
-
-
-def test_smallest_group(client, ctx):
-    url = url_for("smallest_group")
-    resp = client.get(url)
-    data = resp.data.decode("utf-8")
-    assert 'FOOBAR' in data
-    assert "2" in data
-
-
-def test_add_new_student(client, ctx):
-    url_from = url_for("add_new_student")
-    resp = client.get(url_from)
-    assert resp.status_code == 200
-
-    url_to = url_for("add_student")
-    response = client.post(url_to, data={
-        "first_name": "Joseph",
-        "last_name": "Gach",
-        "group_id": "200",
-    })
-    assert response.status_code == 200
-    data = response.data.decode("utf-8")
-    assert "COOL" in data
-
-
-def test_show_courses(client, ctx):
-    url = url_for("show_courses", id="1", delete_from_course="15")
-    resp = client.get(url)
-    data = resp.data.decode("utf-8")
-    assert resp.status_code == 200
-    assert "FOO" in data
-    assert "BAR" in data
-    assert resp.request.args.get("delete_from_course") == "15"
-
-    url = url_for("show_courses", id="3", course_id="15")
-    resp = client.get(url)
-    data = resp.data.decode("utf-8")
-    assert "foo" in data
-    assert "bar" in data
-    assert resp.request.args.get("course_id") == "15"
-
-
-def test_show_all_courses(client, ctx):
-    url = url_for("show_all_courses")
-    resp = client.get(url)
-    url1 = url_for('all_students', course=15)
-    url2 = url_for('all_students', course=25)
-    url3 = url_for('all_students', course=35)
-    url4 = url_for('all_students', course=36)
-    data = resp.data.decode("utf-8")
-    assert url1 in data
-    assert url2 in data
-    assert url3 in data
-    assert url4 in data
 
 
 def test_api_groups(client, ctx):

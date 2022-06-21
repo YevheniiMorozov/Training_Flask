@@ -23,6 +23,6 @@ if app.config["TESTING"]:
 
 engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
 
-SessionLocal = sessionmaker()
 
 Base = declarative_base()
+Base.metadata.clear()
