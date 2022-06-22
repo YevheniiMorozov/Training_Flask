@@ -2,9 +2,9 @@ import random
 from string import ascii_letters
 
 from models import StudentCourseAssoc, Student, Course, Group
-from application import engine, Base
+from application import Base
 
-from application.app import SessionLocal
+from application.init_db import Session, engine
 
 
 def random_string(length):
@@ -37,28 +37,27 @@ students = [Student(
     group_id=random.choice(range(1, 11)),
 ) for _ in range(200)]
 
-result_group = [Group(id=index, name=element) for index, element in enumerate(group, 1)]
+result_group = [Group(name=element) for element in group]
 result_courses = [Course(name=elements, description=random_string(length=20)) for elements in courses]
 
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
 
-with engine.connect() as connection:
-    with SessionLocal(bind=connection) as session:
-        session.add_all(result_courses)
-        session.commit()
-        session.add_all(students)
-        session.commit()
-        session.add_all(result_group)
-        session.commit()
-        # s = Student()
-        # st_course = StudentCourseAssoc()
-        # st_course.course = Course()
-        # s.course.append(st_course)
-        # all_students = [el.course.extend(random.sample(st_course.course, random.randint(1, 3)))
-        #                 for el in session.query(Student).filter().all()]
-        # all_student = [el.course.extend(random.sample(result_courses, random.randint(1, 3))) for el in
-        #                        session.query(Student).filter().all()]
-        session.commit()
+if __name__ == '__main__':
 
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+    with engine.connect() as connection:
+        with Session(bind=connection) as session:
+            session.add_all(result_group)
+            session.commit()
+            session.add_all(result_courses)
+            session.commit()
+            session.add_all(students)
+            session.commit()
+            st_crs = []
+            for el in students:
+                for crs in random.sample(result_courses, random.randint(1, 3)):
+                    st_crs.append(StudentCourseAssoc(student_id=el.id, course_id=crs.id))
+            session.add_all(st_crs)
+            session.commit()
 

@@ -1,8 +1,6 @@
 from flask import Flask
 
-from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
 
 DB_USER = "postgres"
@@ -16,12 +14,6 @@ POSTGRES_TEST = f"postgresql://{DB_USER}:{DB_PASS}@{IP}/{DB_TEST}"
 
 
 app = Flask(__name__)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = POSTGRES_URI
-if app.config["TESTING"]:
-    app.config["SQLALCHEMY_DATABASE_URI"] = POSTGRES_TEST
-
-engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
 
 
 Base = declarative_base()

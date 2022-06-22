@@ -1,0 +1,26 @@
+swagger: '2.0'
+info:
+  title: 'Flasgger Parsed Method'
+  description: 'FoxMindEd Task-8'
+  version: '0.1'
+
+summary: Add new course
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: "body"
+    name: "students"
+    required: True
+    schema:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          frormat: "str"
+          example: "Python"
+        description:
+          type: "string"
+          frormat: "str"
+          example: "Very cool and simple language"

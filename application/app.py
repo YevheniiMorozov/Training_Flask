@@ -1,7 +1,6 @@
 import os
 
-from sqlalchemy.orm import sessionmaker
-from application import app, Base, engine
+from application import app, Base
 
 from flask import url_for, request, jsonify, Response
 from flask_restful import Api, Resource
@@ -18,12 +17,12 @@ PATH_TO_YML = "swagger_files"
 
 app.config['DEBUG'] = True
 
+from .init_db import Session, engine
 
-SessionLocal = sessionmaker()
 Base.metadata.bind = engine
 
-SessionLocal.configure(bind=engine)
-session = SessionLocal()
+Session.configure(bind=engine)
+session = Session()
 
 
 api = Api(app, catch_all_404s=True, prefix="/api/v1")
@@ -74,12 +73,12 @@ class AllCourses(Resource):
         result = {course.id: {
             "name": course.name,
             "description": course.description,
-            "student`s count": len(course.student)
         } for course in result}
         if format_output == TO_XML:
             return Response(json2xml.Json2xml(result).to_xml(), mimetype="txt/xml")
         return jsonify(result)
 
+    @swag_from(os.path.join(PATH_TO_YML, "add_course.yml"))
     def post(self):
         args = request.get_json()
         n = str(args["name"])
@@ -89,10 +88,11 @@ class AllCourses(Resource):
         result = crud.add_new_course(db=session, course_name=n, description=d)
         return jsonify(result)
 
+    @swag_from(os.path.join(PATH_TO_YML, "course_delete.yml"))
     def delete(self):
-        group_id = int(request.args.get("group_id"))
-        t.Int().check(group_id)
-        result = crud.delete_group(db=session, group_id=group_id)
+        course_id = int(request.args.get("course_id"))
+        t.Int().check(course_id)
+        result = crud.delete_course(db=session, course_id=course_id)
         return jsonify(result)
 
 
@@ -103,24 +103,25 @@ class AllGroups(Resource):
         result = crud.get_groups(db=session, all=True)
         result = {index: {
             "name": group.name,
-            "students count": group[0]
+            "students count": group[2]
         } for index, group in enumerate(result, 1)}
         if format_output == TO_XML:
             return Response(json2xml.Json2xml(result).to_xml(), mimetype="txt/xml")
         return jsonify(result)
 
+    @swag_from(os.path.join(PATH_TO_YML, "group_post.yml"))
     def post(self):
         name_group = request.args.get("group_name")
         t.String().check(name_group)
         result = crud.add_new_group(db=session, group_name=name_group)
         return jsonify(result)
 
+    @swag_from(os.path.join(PATH_TO_YML, "group_delete.yml"))
     def delete(self):
         group_id = int(request.args.get("group_id"))
         t.Int().check(group_id)
         result = crud.delete_group(db=session, group_id=group_id)
         return jsonify(result)
-
 
 
 class StudentCourse(Resource):
@@ -131,13 +132,11 @@ class StudentCourse(Resource):
         result = crud.get_student_course(db=session, student_id=int(student_id))
         if student_id:
             result = {
-                "Firstname": result.first_name,
-                "Lastname": result.last_name,
-                "Group_id": result.group_id,
+                "Student_id": student_id,
                 "Courses": {index: {
-                    "name": courses.name,
-                    "id": courses.id
-                } for index, courses in enumerate(result.course, 1)}}
+                    "name": element.course.name,
+                    "id": element.course_id
+                } for index, element in enumerate(result, 1)}}
         if format_output == TO_XML:
             return Response(json2xml.Json2xml(result).to_xml(), mimetype="txt/xml")
         return jsonify(result)
@@ -148,15 +147,8 @@ class StudentCourse(Resource):
         course_id = int(request.args.get("course_id"))
         t.Int().check(student_id)
         t.Int().check(course_id)
-        course = crud.get_course(db=session, course_id=course_id)
-        if not course:
-            return jsonify({"message": "Course does not exist"})
-        student = crud.get_student_course(db=session, student_id=student_id)
-        student_courses = [courses.id for courses in student.course]
-        if course_id in student_courses:
-            return jsonify({"message": "Student is already on it"})
-        crud.add_student_to_course(db=session, user_id=student_id, course_id=course_id)
-        return jsonify({"message": "Successfully added"})
+        result = crud.add_student_to_course(db=session, course_id=course_id, user_id=student_id)
+        return jsonify(result)
 
     @swag_from(os.path.join(PATH_TO_YML, "student_courses_delete.yml"))
     def delete(self):

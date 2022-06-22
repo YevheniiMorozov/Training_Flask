@@ -4,12 +4,7 @@ info:
   version: '0.1'
 
 parameters:
-  - name: student_id
-    type: integer
-    in: query
-    required: True
-    default: 1
-  - name: course_id
+  - name: group_id
     type: integer
     in: query
     required: True

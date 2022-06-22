@@ -1,7 +1,7 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from .models import Student, Course, Group
+from .models import Student, Course, Group, StudentCourseAssoc
 
 
 def get_all_(db: Session, course_id=None):
@@ -16,10 +16,10 @@ def get_courses(db: Session):
 
 
 def get_groups(db: Session, all=False):
-    group_data = db.query(func.count(Student.group_id), Student.group_id, Group.name
-                          ).join(Group).group_by(Student.group_id, Group.id).filter(Student.group_id == Group.id)
-    group_data = sorted(group_data, key=lambda x: x[0])
-    min_group = group_data[0][0]
+    group_data = db.query(Group.name, Student.group_id, func.count(Student.group_id)).join(Student).group_by(
+        Group.id, Student.group_id).all()
+    group_data = sorted(group_data, key=lambda x: x[2])
+    min_group = group_data[0][2]
     if all:
         return group_data
     return filter(lambda x: x[0] == min_group, group_data)
@@ -27,15 +27,15 @@ def get_groups(db: Session, all=False):
 
 def get_student_course(db: Session, student_id: int):
     if student_id:
-        return db.query(Student).filter(Student.id == student_id).one()
+        return db.query(StudentCourseAssoc).filter(StudentCourseAssoc.student_id == student_id).all()
     return {"message": "Please, input student id"}
 
 
 def remove_from_course(db: Session, course_id, student_id):
     if student_id and course_id:
-        student = db.query(Student).filter(Student.id == student_id).first()
-        course = db.query(Course).filter(Course.id == course_id).first()
-        student.course.remove(course)
+        db.query(StudentCourseAssoc).filter(
+            StudentCourseAssoc.student_id == student_id).filter(
+            StudentCourseAssoc.course_id == course_id).delete()
         db.commit()
         return {"message": "Successfully deleted"}
     return {"message": "Incorrect input student id or course id"}
@@ -50,12 +50,15 @@ def add_new_student(db: Session, first, last, group):
     return db.commit()
 
 
-def add_student_to_course(db: Session, user_id, course_id):
+def add_student_to_course(db: Session, user_id: int, course_id: int):
 
     student = db.query(Student).filter(Student.id == user_id).first()
     course = db.query(Course).filter(Course.id == course_id).first()
-    student.course.append(course)
-    return db.commit()
+    if student and course:
+        db.add(StudentCourseAssoc(student_id=user_id, course_id=course_id))
+        db.commit()
+        return {"message": "Successfully added"}
+    return {"message": "Incorrect data input"}
 
 
 def delete_student(db: Session, student_id: int):
@@ -86,8 +89,7 @@ def delete_course(db: Session, course_id: int):
 
 
 def add_new_group(db: Session, group_name: str):
-    group = Group(name=group_name)
-    db.add(group)
+    db.add(Group(name=group_name))
     db.commit()
     return {"message": "Successfully added"}
 
