@@ -1,9 +1,8 @@
 import pytest
 
 from flask import url_for
-from sqlalchemy import create_engine
 from application.database.models import Student, Course, Group, StudentCourseAssoc
-from application import POSTGRES_TEST, Base
+from application import Base
 
 
 @pytest.fixture(scope="session")
@@ -11,9 +10,6 @@ def app():
     from application.app import app
 
     app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = POSTGRES_TEST
-    # engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
-
     from application.init_db import Session, engine
 
     Base.metadata.bind = engine
