@@ -3,6 +3,7 @@ import pytest
 from flask import url_for
 from application.database.models import Student, Course, Group, StudentCourseAssoc
 from application import Base
+from application.init_db import Session, engine
 
 
 @pytest.fixture(scope="session")
@@ -10,7 +11,6 @@ def app():
     from application.app import app
 
     app.config["TESTING"] = True
-    from application.init_db import Session, engine
 
     Base.metadata.bind = engine
     Session.configure(bind=engine)

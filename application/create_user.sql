@@ -1,2 +1,0 @@
-CREATE USER teacher WITH PASSWORD 'password';
-GRANT ALL PRIVILEGES ON DATABASE students To teacher;
