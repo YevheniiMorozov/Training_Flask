@@ -9,7 +9,7 @@ Base.metadata.clear()
 
 class Group(Base):
     __table_args__ = {'extend_existing': True}
-    __tablename__ = "group"
+    __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(20), nullable=False)
@@ -17,7 +17,7 @@ class Group(Base):
 
 class Student(Base):
     __table_args__ = {'extend_existing': True}
-    __tablename__ = "student"
+    __tablename__ = "students"
 
     id = Column(Integer, primary_key=True)
     first_name = Column(String(50), nullable=False)
@@ -28,7 +28,7 @@ class Student(Base):
 
 class Course(Base):
     __table_args__ = {'extend_existing': True}
-    __tablename__ = "course"
+    __tablename__ = "courses"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
