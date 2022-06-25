@@ -3,8 +3,14 @@
 SELECT groups.name, COUNT(students.group_id)
 FROM groups INNER JOIN students ON groups.id = students.group_id
 GROUP BY groups.id
+HAVING COUNT(students.group_id) = (
+	SELECT COUNT(students.group_id)
+	FROM groups INNER JOIN students ON groups.id = students.group_id
+	GROUP BY groups.id
+	ORDER BY COUNT(students.group_id)
+	LIMIT 1)
 ORDER BY COUNT(students.group_id)
-LIMIT 1
+
 
 --Find all students related to the course with a given name.
 
