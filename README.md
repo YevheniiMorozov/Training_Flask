@@ -1,2 +1,1 @@
-# Task-10
-
+Training project with using Flask and SQLAlchemy
